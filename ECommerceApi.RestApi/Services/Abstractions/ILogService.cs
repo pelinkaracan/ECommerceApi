@@ -10,5 +10,6 @@ namespace ECommerceApi.RestApi.Services.Abstractions
     public interface ILogService
     {
         public Task CreateLogAsync(Exception excep);
+        //test
     }
 }
