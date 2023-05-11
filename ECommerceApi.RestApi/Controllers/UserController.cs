@@ -1,59 +1,72 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Identity;
-using System.Threading.Tasks;
 using ECommerceApi.RestApi.Models.Common;
 using ECommerceApi.RestApi.Models.Documents;
-using MongoDB.Driver;
 using Microsoft.Extensions.Options;
 using ECommerceApi.RestApi.Services.Implementations;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
+using MongoDB.Driver.Linq;
 
 namespace ECommerceApi.RestApi.Controllers
 {
-    //[Controller]
-    //[Route("api /[controller]")]
-    public class UserController 
+    [Controller]
+    [Route("api /[controller]")]
+    public class UserController : ControllerBase
     {
-
-
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly MongoDbService<User> _mongoDbService;
+        private readonly IConfiguration _config;
 
-        public UserController(IOptions<MongoDbSettings> mongoDbSettings, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public UserController(IOptions<MongoDbSettings> mongoDbSettings, IConfiguration config)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
             _mongoDbService = new MongoDbService<User>(mongoDbSettings, "Users");
-
+            _config = config;
         }
 
-        //    [HttpPost("login")]
-        //    public async Task<IActionResult> LoginAsync(string email, string password)
-        //    {
-        //        // Check if the user exists in the database
-        //        var userExists = await _mongoDbService.UserExistsAsync(email);
-        //        if (!userExists)
-        //        {
-        //            return NotFound("User not found");
-        //        }
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginModel model)
+        {
+            var user = await _mongoDbService.UserExistsAsync(model.Email,model.Password);
 
-        //        // Attempt to sign in the user
-        //        var user = await _userManager.FindByEmailAsync(email);
-        //        var result = await _signInManager.PasswordSignInAsync(user, password, false, false);
-        //        if (!result.Succeeded)
-        //        {
-        //            return BadRequest("Invalid login credentials");
-        //        }
+            if (user == null)
+            {
+                return Unauthorized();
+            }
 
-        //        return Ok();
-        //    }
+            var token = GenerateToken(user, Convert.ToInt32(_config["Jwt:ExpirationSecond"]));
+            return Ok(new { Token = token });
+        }
 
-        //    [HttpPost("logout")]
-        //    public async Task<IActionResult> LogoutAsync()
-        //    {
-        //        await _signInManager.SignOutAsync();
+        [HttpPost("logout")]
+        public IActionResult Logout([FromBody] User user)
+        {
+            // Perform any necessary cleanup or session management tasks
+            // For example, you could invalidate the user's token or remove it from the client-side storage
+            var token = GenerateToken(user, 10);
+            return Ok(new { Token = token, Message = "Logout successful" });
+        }
 
-        //        return Ok();
-        //    }
+        private string GenerateToken(User user,int expirationSecond)
+        {
+            using (var sha256 = System.Security.Cryptography.SHA256.Create())
+            {
+                // Compute the hash of the entered password
+                var enteredPasswordHash = sha256.ComputeHash(Encoding.UTF8.GetBytes(user.Password));
+                var securityKey = new SymmetricSecurityKey(enteredPasswordHash);
+                var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+                var claims = new[]
+                {
+                new Claim(ClaimTypes.NameIdentifier,user.Email),
+            };
+                var token = new JwtSecurityToken(_config["Jwt:Issuer"],
+                    _config["Jwt:Audience"],
+                    claims,
+                    expires: DateTime.Now.AddSeconds(expirationSecond),
+                    signingCredentials: credentials);
+                return new JwtSecurityTokenHandler().WriteToken(token);
+            }
+        }
     }
+
 }

@@ -21,10 +21,9 @@ namespace ECommerceApi.RestApi.Controllers
         private readonly MongoDbService<Order> _mongoDbService;
         private readonly ILogService _logService;
 
-        public OrderController(IOptions<MongoDbSettings> mongoDbSettings, ILogService logService)
+        public OrderController(IOptions<MongoDbSettings> mongoDbSettings)
         {
             _mongoDbService = new MongoDbService<Order>(mongoDbSettings, "Orders");
-            _logService = logService;
         }
 
         [HttpGet]
