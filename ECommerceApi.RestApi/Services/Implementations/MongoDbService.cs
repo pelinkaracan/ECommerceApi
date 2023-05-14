@@ -37,7 +37,7 @@ namespace ECommerceApi.RestApi.Services.Implementations
                 .CircuitBreakerAsync(exceptionsAllowedBeforeBreaking: 2, durationOfBreak: TimeSpan.FromSeconds(30));
         }
 
-        public async Task<IEnumerable<T>> GetDocumentsAsync(int page, int pageSize, string filter)
+        public async Task<PagedResult<T>> GetDocumentsAsync(int page, int pageSize, string filter)
         {
             try
             {
@@ -47,7 +47,7 @@ namespace ECommerceApi.RestApi.Services.Implementations
                 {
                     var filterDefinition = Builders<T>.Filter.Empty;
 
-                    if (!string.IsNullOrWhiteSpace(filter))
+                    if (!string.IsNullOrEmpty(filter))
                     {
                         QueryHelper<T> queryHelper = new QueryHelper<T>();
                         // Parse the filter string into a FilterDefinition<T>
@@ -60,7 +60,7 @@ namespace ECommerceApi.RestApi.Services.Implementations
                         .Limit(pageSize)
                         .ToListAsync();
 
-                    return new PagedResult<T>(products, count, page, pageSize).Items;
+                    return new PagedResult<T>(products, count, page, pageSize);
                 });
 
                 return result;
@@ -72,6 +72,7 @@ namespace ECommerceApi.RestApi.Services.Implementations
             }
 
         }
+
 
         public async Task<T> GetDocumentByIdAsync(string id)
         {

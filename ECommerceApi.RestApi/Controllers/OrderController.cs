@@ -14,12 +14,12 @@ using System.Threading.Tasks;
 
 namespace ECommerceApi.RestApi.Controllers
 {
+    
     [Controller]
-    [Route("api /[controller]")]
+    [Route("api/[controller]")]
     public class OrderController : ControllerBase
     {
         private readonly MongoDbService<Order> _mongoDbService;
-        private readonly ILogService _logService;
 
         public OrderController(IOptions<MongoDbSettings> mongoDbSettings)
         {
@@ -27,7 +27,7 @@ namespace ECommerceApi.RestApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<Order>> GetOrders(
+        public async Task<PagedResult<Order>> GetOrders(
             [FromQuery(Name = "page")] int page = 1,
             [FromQuery(Name = "pageSize")] int pageSize = 20,
             [FromQuery(Name = "filter")] string filter = "")

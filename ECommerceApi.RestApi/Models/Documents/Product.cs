@@ -1,6 +1,7 @@
 ﻿using ECommerceApi.RestApi.Models.Common;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson;
+using MongoDB.Libmongocrypt;
 
 namespace ECommerceApi.RestApi.Models.Documents
 {
