@@ -1,14 +1,10 @@
-﻿using ECommerceApi.RestApi.Models.Common;
-using ECommerceApi.RestApi.Models.Documents;
-using Microsoft.Extensions.Options;
-using MongoDB.Driver;
-using Polly.CircuitBreaker;
-using Polly.Retry;
-
+﻿
 namespace ECommerceApi.RestApi.Services.Abstractions
 {
+    // Represents the interface for a log service
     public interface ILogService
     {
+        // Creates a log asynchronously based on the provided exception
         public Task CreateLogAsync(Exception excep);
     }
 }

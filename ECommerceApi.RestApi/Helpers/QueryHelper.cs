@@ -8,8 +8,7 @@ namespace ECommerceApi.RestApi.Helpers
         public FilterDefinition<T> ParseFilter(string filter)
         {
             // Parse the filter string into a FilterDefinition<T>
-            // Here's an example of how to parse a filter string that uses the "contains" operator:
-            // filter=Name contains 'Product'
+            // Here's an example => filter=Name contains 'Product'
             var parts = filter.Split(" ");
             var field = parts[0];
             var op = parts[1];
@@ -19,7 +18,6 @@ namespace ECommerceApi.RestApi.Helpers
             {
                 case "contains":
                     return Builders<T>.Filter.Regex(field, new BsonRegularExpression(value, "i"));
-                // Add other operators as needed
                 default:
                     throw new ArgumentException($"Invalid operator: {op}");
             }
